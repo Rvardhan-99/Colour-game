@@ -1,0 +1,42 @@
+name: Deploy Flask App to Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to server via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Create app directory if missing
+          mkdir -p ~/apps/your-flask-app
+          cd ~/apps/your-flask-app
+
+          # Remove old files and clone fresh copy
+          rm -rf *
+          git clone https://github.com/Rvardhan-99/Colour-game.git temp
+          mv temp/* .
+          mv temp/.* . || true  # move hidden files (like .gitignore)
+          rm -rf temp
+
+          # Setup Python environment
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+          # Kill any running instance of app.py
+          pkill -f app.py || true
+
+          # Start the Flask app (change port if needed)
+          nohup python3 app.py > app.log 2>&1 &
