@@ -22,30 +22,29 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
                     echo "🔧 Starting deployment..."
-                  
+                    
                     APP_DIR=~/apps/your-flask-app
-                  
+                    
                     echo "📁 Cleaning and setting up app directory..."
                     rm -rf $APP_DIR
                     mkdir -p $APP_DIR
                     cd $APP_DIR
-                  
+                    
                     echo "📥 Cloning latest code from GitHub..."
                     git clone https://github.com/Rvardhan-99/Colour-game.git temp
                     mv temp/* . || true
-                    mv temp/.* . || true
+                    mv temp/.[!.]* . || true  # move hidden files (except . and ..)
                     rm -rf temp
-                  
+                    
                     echo "🐍 Setting up virtual environment..."
                     python3 -m venv venv
                     $APP_DIR/venv/bin/pip install --upgrade pip
                     $APP_DIR/venv/bin/pip install -r requirements.txt
-                  
+                    
                     echo "🛑 Killing any running instance of app.py..."
                     pkill -f app.py || true
-                  
-                    echo "🚀 Starting Flask app in background..."
-                    $APP_DIR/venv/bin/python3 $APP_DIR/app.py --host=0.0.0.0 --port=5000 > $APP_DIR/app.log 2>&1 &
-                    disown
-                  
+                    
+                    echo "🚀 Starting Flask app in background with nohup..."
+                    nohup $APP_DIR/venv/bin/python3 $APP_DIR/app.py --host=0.0.0.0 --port=5000 > $APP_DIR/app.log 2>&1 &
+                    
                     echo "✅ Deployment complete. App should be running at http://<server-ip>:5000"
