@@ -35,10 +35,11 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
-          sleep 1000
+         
 
           # Kill any running instance of app.py
           pkill -f app.py || true
 
           # Start the Flask app (change port if needed)
           python3 app.py > app.log 2>&1 &
+          sleep 1000
