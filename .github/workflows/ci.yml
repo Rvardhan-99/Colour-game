@@ -20,6 +20,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           # Create app directory if missing
+          rm -rf apps
           mkdir -p ~/apps/your-flask-app
           cd ~/apps/your-flask-app
 
