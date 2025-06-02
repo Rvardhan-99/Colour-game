@@ -35,6 +35,7 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
+          sleep 1000
 
           # Kill any running instance of app.py
           pkill -f app.py || true
