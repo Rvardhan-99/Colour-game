@@ -39,4 +39,4 @@ jobs:
           pkill -f app.py || true
 
           # Start the Flask app (change port if needed)
-          nohup python3 app.py > app.log 2>&1 &
+          disown python3 app.py > app.log 2>&1 &
