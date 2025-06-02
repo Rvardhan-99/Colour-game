@@ -2,44 +2,51 @@ name: Deploy Flask App to Server
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   deploy:
+    name: Deploy Flask App
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: Deploy to server via SSH
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          # Create app directory if missing
-          rm -rf apps
-          mkdir -p ~/apps/your-flask-app
-          cd ~/apps/your-flask-app
+      - name: Deploy via SSH to Remote Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "🔧 Starting deployment..."
 
-          # Remove old files and clone fresh copy
-          rm -rf *
-          git clone https://github.com/Rvardhan-99/Colour-game.git temp
-          mv temp/* .
-          mv temp/.* . || true  # move hidden files (like .gitignore)
-          rm -rf temp
+            # Define project path
+            APP_DIR=~/apps/your-flask-app
 
-          # Setup Python environment
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
-         
+            echo "📁 Cleaning and setting up app directory..."
+            rm -rf $APP_DIR
+            mkdir -p $APP_DIR
+            cd $APP_DIR
 
-          # Kill any running instance of app.py
-          pkill -f app.py || true
+            echo "📥 Cloning latest code from GitHub..."
+            git clone https://github.com/Rvardhan-99/Colour-game.git temp
+            mv temp/* . || true
+            mv temp/.* . || true
+            rm -rf temp
 
-          # Start the Flask app (change port if needed)
-          python3 app.py > app.log 2>&1 &
-          sleep 1000
+            echo "🐍 Setting up virtual environment..."
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            echo "🛑 Stopping any existing Flask app..."
+            pkill -f app.py || true
+
+            echo "🚀 Starting Flask app with nohup on 0.0.0.0:5000..."
+            nohup python3 app.py --host=0.0.0.0 --port=5000 > app.log 2>&1 &
+
+            echo "✅ Deployment complete. App should now be running on port 5000."
